@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import numpy as np
 
 import porespy as ps
@@ -149,3 +150,153 @@ def show_sections_OrionB_vertical(data, n_regions=3, thresholds=None):
             plt.colorbar(label="Value")
             plt.tight_layout()
             plt.show()
+
+
+def visualize_Mass_Size_D_Diagrams(fractal_dims_OA, fractal_dims_OB, masses_OA, masses_OB, sizes_OA, sizes_OB):
+
+    # Determine the global min and max fractal dimension
+    global_vmin = min(np.min(fractal_dims_OA), np.min(fractal_dims_OB))
+    global_vmax = max(np.max(fractal_dims_OA), np.max(fractal_dims_OB))
+
+    # Create a common normalization for both datasets
+    norm = mcolors.Normalize(vmin=global_vmin, vmax=global_vmax)
+    cmap = plt.cm.viridis  # Choose your preferred colormap
+
+    # Plot the lines and data points
+    plt.figure(figsize=(10,6))
+
+    # Define the extended mass range
+    M_min = np.min(masses_OA) if np.min(masses_OA) > 0 else 1  # Avoid zero or negative values
+    M_max = np.max(masses_OA)  # Extend lines to the highest observed mass
+    M = np.logspace(np.log10(M_min), np.log10(M_max), 100)
+
+    # Constants
+    b0 = 1e4  # cm^(-2)
+    G = 4.3e-3  # pc M_sun^-1 (km/s)^2
+    sigma = 2  # Assumed velocity dispersion in km/s (adjust if needed)
+
+    # Aspect Ratio 10
+    A_10 = 10
+    a_10 = (2 * A_10) / (np.pi * b0) ** 0.5
+    L_10 = a_10 * M ** 0.5
+
+    # Aspect Ratio 3
+    A_3 = 3
+    a_3 = (2 * A_3) / (np.pi * b0) ** 0.5
+    L_3 = a_3 * M ** 0.5
+
+    # Virial mass line (M_vir)
+    L_vir = (G * M) / (5 * sigma**2)  # Using M_vir = (5 sigma^2 L) / G
+
+    plt.plot(M, L_10, label="Aspect Ratio=  10", linestyle="--", color="blue")
+    plt.plot(M, L_3, label="Aspect Ratio = 3", linestyle="--", color="red")
+    # plt.plot(M, L_vir, label="Virial Mass", linestyle="--", color="green")
+
+    # First dataset
+    sc1 = plt.scatter(masses_OA, sizes_OA, c=fractal_dims_OA, cmap=cmap, norm=norm, edgecolor='k', alpha=0.7)
+    plt.colorbar(sc1, label='Fractal Dimension (Common Scale)')
+    plt.xlabel('Mass (Solar Masses)')
+    plt.ylabel('Size (pc)')
+    plt.xscale("log")
+    plt.yscale("log")
+    plt.title('Mass vs. Size of Regions in Orion A with Fractal Dimension as Color')
+    plt.grid(True, which="both", linestyle="--", linewidth=0.5)
+    plt.legend()
+    plt.show()
+
+    # Second dataset
+    plt.figure(figsize=(10, 6))
+
+    # Define the extended mass range
+    M_min = np.min(masses_OB) if np.min(masses_OB) > 0 else 1  # Avoid zero or negative values
+    M_max = np.max(masses_OB)  # Extend lines to the highest observed mass
+    M = np.logspace(np.log10(M_min), np.log10(M_max), 100)
+
+    # Aspect Ratio 10
+    A_10 = 10
+    a_10 = (2 * A_10) / (np.pi * b0) ** 0.5
+    L_10 = a_10 * M ** 0.5
+
+    # Aspect Ratio 3
+    A_3 = 3
+    a_3 = (2 * A_3) / (np.pi * b0) ** 0.5
+    L_3 = a_3 * M ** 0.5
+
+    L_vir = (G * M) / (5 * sigma**2)
+
+    plt.plot(M, L_10, label="Aspect Ratio=  10", linestyle="--", color="blue")
+    plt.plot(M, L_3, label="Aspect Ratio = 3", linestyle="--", color="red")
+    # plt.plot(M, L_vir, label="Virial Mass", linestyle="--", color="green")
+
+    sc2 = plt.scatter(masses_OB, sizes_OB, c=fractal_dims_OB, cmap=cmap, norm=norm, edgecolor='k', alpha=0.7)
+    plt.colorbar(sc2, label='Fractal Dimension (Common Scale)')
+    plt.xlabel('Mass (Solar Masses)')
+    plt.ylabel('Size (pc)')
+    plt.xscale("log")
+    plt.yscale("log")
+    plt.legend()
+    plt.title('Mass vs. Size of Regions in Orion B with Fractal Dimension as Color')
+    plt.grid(True, which="both", linestyle="--", linewidth=0.5)
+    plt.show()
+
+def visualize_Mass_Size_D_Diagramm_as_One(fractal_dims_OA, fractal_dims_OB, masses_OA, masses_OB, sizes_OA, sizes_OB):
+    # Determine the global min and max fractal dimension
+    global_vmin = min(np.min(fractal_dims_OA), np.min(fractal_dims_OB))
+    global_vmax = max(np.max(fractal_dims_OA), np.max(fractal_dims_OB))
+
+    # Create a common normalization for both datasets
+    norm = mcolors.Normalize(vmin=global_vmin, vmax=global_vmax)
+    cmap = plt.cm.viridis  # Choose your preferred colormap
+
+    # Plot the lines and data points
+    plt.figure(figsize=(10, 6))
+
+    # Define the extended mass range
+    M_min = min(np.min(masses_OA), np.min(masses_OB)) if np.min(masses_OA) > 0 and np.min(masses_OB) > 0 else 1  # Avoid zero or negative values
+    M_max = max(np.max(masses_OA), np.max(masses_OB))  # Extend lines to the highest observed mass
+    M = np.logspace(np.log10(M_min), np.log10(M_max), 100)
+
+    # Constants
+    b0 = 1e4  # cm^(-2)
+    G = 4.3e-3  # pc M_sun^-1 (km/s)^2
+    sigma = 2  # Assumed velocity dispersion in km/s (adjust if needed)
+
+    # Aspect Ratio 10
+    A_10 = 10
+    a_10 = (2 * A_10) / (np.pi * b0) ** 0.5
+    L_10 = a_10 * M ** 0.5
+
+    # Aspect Ratio 3
+    A_3 = 3
+    a_3 = (2 * A_3) / (np.pi * b0) ** 0.5
+    L_3 = a_3 * M ** 0.5
+
+    # Virial mass line (M_vir)
+    L_vir = (G * M) / (5 * sigma**2)  # Using M_vir = (5 sigma^2 L) / G
+
+    # Plot the virial mass lines
+    plt.plot(M, L_10, label="Aspect Ratio=  10", linestyle="--", color="blue")
+    plt.plot(M, L_3, label="Aspect Ratio = 3", linestyle="--", color="red")
+    # plt.plot(M, L_vir, label="Virial Mass", linestyle="--", color="green")
+
+    # Plot data for Orion A
+    sc1 = plt.scatter(masses_OA, sizes_OA, c=fractal_dims_OA, cmap=cmap, norm=norm, edgecolor='k', alpha=0.7)
+    # Plot data for Orion B
+    sc2 = plt.scatter(masses_OB, sizes_OB, c=fractal_dims_OB, cmap=cmap, norm=norm, edgecolor='k', alpha=0.7)
+
+    # Add colorbars
+    plt.colorbar(sc1, label='Fractal Dimension (Common Scale)')
+
+    # Set labels and title
+    plt.xlabel('Mass (Solar Masses)')
+    plt.ylabel('Size (pc)')
+    plt.xscale("log")
+    plt.yscale("log")
+    plt.title('Mass vs. Size of Regions in Orion A and B with Fractal Dimension as Color')
+
+    # Add grid and legend
+    plt.grid(True, which="both", linestyle="--", linewidth=0.5)
+    plt.legend(loc='upper left')
+
+    # Show plot
+    plt.show()
