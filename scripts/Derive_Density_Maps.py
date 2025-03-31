@@ -141,3 +141,30 @@ def derive_density_maps():
     N_H2_OB = np.nan_to_num(N_H2_OB, nan=0.0, posinf=0.0, neginf=0.0)
     
     return N_H2, N_H2_OA, N_H2_OB, wcs
+
+def convert_to_mass(N_H2):
+    # calculate Orion A mass map
+    pixel_scale = 0.00417
+    distance = 420
+    radians = 180/np.pi #conversion factor: rad in deg
+    rad_per_px = pixel_scale/radians
+    pc_per_px = np.sin(rad_per_px)*distance
+    
+    pc2_per_px = pc_per_px**2
+    cm_per_pc = 3.086*10**18
+    cm2_per_px = pc2_per_px * (cm_per_pc ** 2) 
+
+    m_p = 1.67e-27 # mass of proton (kg)
+
+    M_H2 = np.array(N_H2, dtype=np.float64)*2.8*m_p/(1.98e30)
+
+    # M_H2 = M_H2*area # check here!
+    M_H2 = M_H2 * cm2_per_px
+
+    # Assuming M_H2_clean is already defined
+    M_H2 = np.nan_to_num(M_H2, nan=0.0, posinf=0.0, neginf=0.0)
+
+    # Masking out negative values
+    M_H2 = np.where(M_H2 > 0, M_H2, 0)
+
+    return M_H2
