@@ -300,3 +300,55 @@ def visualize_Mass_Size_D_Diagramm_as_One(fractal_dims_OA, fractal_dims_OB, mass
 
     # Show plot
     plt.show()
+
+
+# For Simulations
+def show_shapes_results(shape_image, name, thresholds, results, fractal_dimension_BC):
+    # Display the line image
+    plt.figure(figsize=(18, 6))
+
+    plt.subplot(1, 3, 1)
+    plt.imshow(shape_image, cmap='gray')
+    plt.title(name)
+    plt.colorbar()
+
+    plt.subplot(1, 3, 2)
+    plt.plot(thresholds, ((results["fractal_dimension"])), "o-")
+    plt.xlabel('Threshold')
+    plt.ylabel('D (Minkowski Functionals)')
+    plt.title('Minkowski Functionals for '+name)
+
+    # Calculate fractal dimensions using box counting method
+
+    plt.subplot(1, 3, 3)
+    plt.plot(thresholds, fractal_dimension_BC, '-o')
+    plt.xlabel('Threshold')
+    plt.ylabel('D (Box Counting)')
+    plt.title('Fractal Dimensions for '+name)
+
+    plt.tight_layout()
+    plt.show()
+
+def plot_GRF(field, field_CZ_eval, size):
+  # Display the GRF and Eigenvalues 1 and 2 in a (1, 3) subplot
+    plt.figure(figsize=(18, 6))
+
+    plt.subplot(1, 3, 1)
+    plt.imshow(field, cmap='inferno', origin='lower', extent=[0, size, 0, size])
+    plt.colorbar(label="Field Intensity")
+    plt.title("Gaussian Random Field")
+    plt.xlabel("x")
+    plt.ylabel("y")
+
+    plt.subplot(1, 3, 2)
+    plt.imshow(field_CZ_eval[:, :, 0], cmap='coolwarm', origin='lower', extent=[0, size, 0, size])
+    plt.colorbar(label="Eigenvalue 1")
+    plt.title("CZ Eigenvalue 1")
+
+    plt.subplot(1, 3, 3)
+    plt.imshow(field_CZ_eval[:, :, 1], cmap='coolwarm', origin='lower', extent=[0, size, 0, size])
+    plt.colorbar(label="Eigenvalue 2")
+    plt.title("CZ Eigenvalue 2")
+
+    plt.tight_layout()
+    plt.show()
