@@ -144,3 +144,85 @@ def vertical_marching_minkowski_functionals(data, n_regions, threshold_min=6e21,
         fractal_dimensions.append([standard_minkowski_functionals(region, threshold_min=threshold_min, threshold_max=threshold_max)["fractal_dimension"]])
 
     return fractal_dimensions, thresholds
+
+def plane_corrected_minkowski_functionals(data, threshold_min = 1e20, threshold_max=1e22, thresholds = None):
+
+    if thresholds is None:
+        thresholds = np.logspace(np.log10(threshold_min), np.log10(threshold_max), 100)
+
+    # Store Minkowski Functional values
+    areas = []
+    perimeters = []
+    euler_chars = []
+
+    # Process each threshold
+    for threshold in thresholds:
+        # Create binary mask
+        mask = data >= threshold
+
+        # Compute Area (v0)
+        area = np.sum(mask)
+        areas.append(area)
+
+        # Compute Perimeter (v1) with correction for the plane dimension
+        perim = perimeter(mask)/4
+        perimeters.append(perim)
+
+        # Compute Euler Characteristic (v2)
+        euler_char = euler_number(mask)
+        euler_chars.append(euler_char)
+
+    # Convert to log scale for fractal dimension analysis
+    log_areas = np.log10(areas)
+    log_perimeters = np.log10(perimeters)
+
+    D = 2*log_perimeters/log_areas
+
+    return {
+        "thresholds": thresholds,
+        "areas": areas,
+        "perimeters": perimeters,
+        "euler_chars": euler_chars,
+        "fractal_dimension": D
+    }
+
+def circle_corrected_minkowski_functionals(data, threshold_min = 1e20, threshold_max=1e22, thresholds = None):
+
+    if thresholds is None:
+        thresholds = np.logspace(np.log10(threshold_min), np.log10(threshold_max), 100)
+
+    # Store Minkowski Functional values
+    areas = []
+    perimeters = []
+    euler_chars = []
+
+    # Process each threshold
+    for threshold in thresholds:
+        # Create binary mask
+        mask = data >= threshold
+
+        # Compute Area (v0)
+        area = np.sum(mask)
+        areas.append(area)
+
+        # Compute Perimeter (v1)
+        perim = perimeter(mask)
+        perimeters.append(perim)
+
+        # Compute Euler Characteristic (v2)
+        euler_char = euler_number(mask)
+        euler_chars.append(euler_char)
+
+    # Convert to log scale for fractal dimension analysis
+    log_areas = np.log10(areas)
+    log_perimeters = np.log10(perimeters)
+
+    D = 2*(log_perimeters - np.log10(2*np.sqrt(np.pi)))/(log_areas)
+
+    return {
+        "thresholds": thresholds,
+        "areas": areas,
+        "perimeters": perimeters,
+        "euler_chars": euler_chars,
+        "fractal_dimension": D
+    }

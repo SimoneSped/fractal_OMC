@@ -302,7 +302,8 @@ def visualize_Mass_Size_D_Diagramm_as_One(fractal_dims_OA, fractal_dims_OB, mass
     plt.show()
 
 
-# For Simulations
+# For Validity_PA_BC
+
 def show_shapes_results(shape_image, name, thresholds, results, fractal_dimension_BC):
     # Display the line image
     plt.figure(figsize=(18, 6))
@@ -350,5 +351,41 @@ def plot_GRF(field, field_CZ_eval, size):
     plt.colorbar(label="Eigenvalue 2")
     plt.title("CZ Eigenvalue 2")
 
+    plt.tight_layout()
+    plt.show()
+
+# For Simulations_PA
+
+def visualize_grid_simulations(simulations_objects, shape, sigmas, results, results_correction, name_shape, suptitle):
+    plt.figure(figsize=(18, 12))
+
+    # First row: Object images (gaussian, filaments, etc..)
+    for i, gaussian in enumerate(simulations_objects):
+        plt.subplot(5, len(simulations_objects), i + 1)
+        plt.imshow(gaussian, origin='lower', cmap='inferno', extent=[0, shape[0], 0, shape[1]])
+        plt.title(f"{name_shape} {i+1}, $\sigma={sigmas[i]}$")
+        plt.colorbar(label="Amplitude")
+        plt.axis("off")
+
+    # Second, third, fourth rows: Minkowski functionals
+    labels = ["Perimeter (v0)", "Area (v1)", "Fractal Dimension"]
+    iter_objects = ["perimeters", "areas", "fractal_dimension"]
+
+    for j in range(len(labels)):  # One row for each functional
+        for i, gaussian in enumerate(simulations_objects):
+            plt.subplot(5, len(simulations_objects), (j + 1) * len(simulations_objects) + i + 1)
+            plt.plot(results[i]["thresholds"], results[i][iter_objects[j]], 'o-')
+            plt.xlabel("Threshold")
+            plt.ylabel(labels[j])
+            plt.xscale("log")
+            if j == 2:  # For the fractal dimension row
+                avg_fractal_dim = np.nanmean(results[i]["fractal_dimension"]) 
+                plt.title(f"Average D: {avg_fractal_dim:.2f}")
+                
+                plt.plot(results_correction[i]["thresholds"], results_correction[i]["fractal_dimension"], 'o-')
+                plt.xlabel("Threshold")
+                plt.ylabel("Fractal Dimension")
+
+    plt.suptitle(suptitle, fontsize=16, fontweight='bold')
     plt.tight_layout()
     plt.show()
