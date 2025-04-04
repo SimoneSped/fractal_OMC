@@ -1,5 +1,5 @@
 # **Characterizing the fractal dimension of the Orion Molecular Cloud**
-Repository of the code for the Master Thesis "Characterizing the fractal dimension of the Orion Molecular Cloud". 
+Repository of the code for the Master Thesis *"Characterizing the fractal dimension of the Orion Molecular Cloud"*. 
 
 ## 📌**Current Work and Reports**
 - Read [Fractal_Dimension_PA.ipynb](https://github.com/SimoneSped/fractal_OMC/blob/main/Fractal_Dimension_PA.ipynb) for the analysis with the PA-Relation to Orion A and B.
