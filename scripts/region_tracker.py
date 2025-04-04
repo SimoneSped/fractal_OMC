@@ -64,6 +64,9 @@ def compute_fractal_dimension(region_mask):
         return 2 * (np.log10(mask_perimeter) / np.log10(area))
     return None  # Invalid case (avoid division errors)
 
+def find_YSOs_within_region(data_YSOs, region):
+    pass
+
 def track_largest_regions(N_H2, M_H2, thresholds, pc_per_px, num_top_regions=5):
     """
     Track the n largest regions across multiple thresholds and compute their fractal dimensions.
@@ -95,6 +98,7 @@ def track_largest_regions(N_H2, M_H2, thresholds, pc_per_px, num_top_regions=5):
             region_mask = labeled_regions == region_id
             fractal_dim = compute_fractal_dimension(region_mask)
             mass, size = calculate_mass_and_size(region_mask, M_H2, pc_per_px)
+            # YSOs_list = find_YSOs_within_region()
 
             # Store the evolution of each tracked region
             if region_id not in regions:
@@ -102,7 +106,8 @@ def track_largest_regions(N_H2, M_H2, thresholds, pc_per_px, num_top_regions=5):
                     "thresholds": [], 
                     "fractal_dimensions": [],
                     "mass": [],
-                    "size": []
+                    "size": [],
+                    "YSOs": []
                 }
 
             regions[region_id]["thresholds"].append(threshold)
