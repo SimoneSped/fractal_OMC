@@ -10,3 +10,5 @@ Notes/Filaments-relevant Project/mf_marching_square_tensor.py
 Notes/Filaments-relevant Project/Minkowski Functionals and the ISM.pdf
 Notes/Filaments-relevant Project/Minkowski_stuff.ipynb
 Notes/Filaments-relevant Project/TMF_stuff.ipynb
+*.pkl
+/img

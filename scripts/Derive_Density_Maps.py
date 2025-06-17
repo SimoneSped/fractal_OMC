@@ -143,28 +143,51 @@ def derive_density_maps():
     return N_H2, N_H2_OA, N_H2_OB, wcs
 
 def convert_to_mass(N_H2):
-    # calculate Orion A mass map
+    """
+    Converts a column density map (N_H2) into a mass map (M_H2).
+    This function calculates the mass map of molecular hydrogen (H2) 
+    from the given column density map (N_H2). It takes into account 
+    the pixel scale, distance to the object, and physical constants 
+    to perform the conversion. Negative and invalid values in the 
+    resulting mass map are masked out.
+    Parameters:
+    -----------
+    N_H2 : array-like
+        The column density map of molecular hydrogen (H2) in units 
+        of particles per square centimeter.
+    Returns:
+    --------
+    M_H2 : numpy.ndarray
+        The mass map of molecular hydrogen (H2) in units of solar 
+        masses per pixel. Negative and invalid values are replaced 
+        with zero.
+    """
+
+    # calculate mass map
     pixel_scale = 0.00417
-    distance = 420
-    radians = 180/np.pi #conversion factor: rad in deg
+    distance = 412.0 # pc
+    radians = 180.0/np.pi #conversion factor: rad in deg
     rad_per_px = pixel_scale/radians
     pc_per_px = np.sin(rad_per_px)*distance
     
     pc2_per_px = pc_per_px**2
-    cm_per_pc = 3.086*10**18
+
+    # Conversion factor: 1 parsec (pc) to centimeters (cm)
+    cm_per_pc = 3.085677581e18 
     cm2_per_px = pc2_per_px * (cm_per_pc ** 2) 
 
-    m_p = 1.67e-27 # mass of proton (kg)
-
-    M_H2 = np.array(N_H2, dtype=np.float64)*2.8*m_p/(1.98e30)
+    m_p = 1.67262192369e-27  # mass of proton (kg)
+    
+    M_H2 = np.array(N_H2, dtype=np.float64) * m_p / 1.98847e30
+    # M_H2 = np.array(N_H2, dtype=np.float64) * 2.8 * m_p / 1.98847e30
 
     # M_H2 = M_H2*area # check here!
     M_H2 = M_H2 * cm2_per_px
 
     # Assuming M_H2_clean is already defined
-    M_H2 = np.nan_to_num(M_H2, nan=0.0, posinf=0.0, neginf=0.0)
+    M_H2_no_nan = np.nan_to_num(M_H2, nan=0.0, posinf=0.0, neginf=0.0)
 
     # Masking out negative values
-    M_H2 = np.where(M_H2 > 0, M_H2, 0)
+    M_H2_clean = np.where(M_H2_no_nan > 0, M_H2_no_nan, 0)
 
-    return M_H2
+    return M_H2_clean

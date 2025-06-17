@@ -33,8 +33,8 @@ def show_regions_with_sections(data, n_regions=3, thresholds = None):
         # Add label for the last region
         plt.text(width - w_step // 2, height // 10, f'Region {n_regions}', color='white', fontsize=12, ha='center', va='top')
 
-        plt.title("Map with Section Boundaries")
-        plt.colorbar(label="Value")
+        plt.title("Map with Section Boundaries", fontweight='bold')
+        plt.colorbar(label="Column Density")
         plt.tight_layout()
         plt.show()
 
@@ -61,14 +61,14 @@ def show_regions_with_sections(data, n_regions=3, thresholds = None):
                 # Add label for the last region
                 plt.text(width - w_step // 2, height // 10, f'Region {n_regions}', color='black', fontsize=12, ha='center', va='top')
 
-            plt.title(f"Map with Threshold {threshold:.2e}")
-            plt.colorbar(label="Value")
+            plt.title(f"Map with Threshold {threshold:.2e}", fontweight='bold')
+            plt.colorbar(label="Column Density")
             plt.tight_layout()
             plt.show()
 
 def show_Minkowski_Functionals(region_name, results):
     plt.figure(figsize=(14, 8))
-    plt.suptitle("Minkowski Functionals of "+region_name, fontsize=16)
+    plt.suptitle("Minkowski Functionals of "+region_name, fontsize=16, fontweight='bold')
 
     plt.subplot(1, 4, 1)
     plt.plot(results["thresholds"], results["areas"], 'o-')
@@ -119,7 +119,7 @@ def show_sections_OrionB_vertical(data, n_regions=3, thresholds=None):
     # Add label for the last region
     plt.text(width // 10, height - h_step // 2, f'Region {n_regions}', color='white', fontsize=12, ha='center', va='top')
 
-    plt.title("Map with Section Boundaries")
+    plt.title("Map with Section Boundaries", fontweight='bold')
     plt.colorbar(label="Value")
     plt.tight_layout()
     plt.show()
@@ -146,7 +146,7 @@ def show_sections_OrionB_vertical(data, n_regions=3, thresholds=None):
             # Add label for the last region
             plt.text(width // 10, height - h_step // 2, f'Region {n_regions}', color='black', fontsize=12, ha='center', va='top')
 
-            plt.title(f"Map with Threshold {threshold:.2e}")
+            plt.title(f"Map with Threshold {threshold:.2e}", fontweight='bold')
             plt.colorbar(label="Value")
             plt.tight_layout()
             plt.show()
@@ -199,7 +199,7 @@ def visualize_Mass_Size_D_Diagrams(fractal_dims_OA, fractal_dims_OB, masses_OA, 
     plt.ylabel('Size (pc)')
     plt.xscale("log")
     plt.yscale("log")
-    plt.title('Mass vs. Size of Regions in Orion A with Fractal Dimension as Color')
+    plt.title('Mass vs. Size of Regions in Orion A with Fractal Dimension as Color', fontweight='bold')
     plt.grid(True, which="both", linestyle="--", linewidth=0.5)
     plt.legend()
     plt.show()
@@ -235,7 +235,7 @@ def visualize_Mass_Size_D_Diagrams(fractal_dims_OA, fractal_dims_OB, masses_OA, 
     plt.xscale("log")
     plt.yscale("log")
     plt.legend()
-    plt.title('Mass vs. Size of Regions in Orion B with Fractal Dimension as Color')
+    plt.title('Mass vs. Size of Regions in Orion B with Fractal Dimension as Color', fontweight='bold')
     plt.grid(True, which="both", linestyle="--", linewidth=0.5)
     plt.show()
 
@@ -292,7 +292,7 @@ def visualize_Mass_Size_D_Diagramm_as_One(fractal_dims_OA, fractal_dims_OB, mass
     plt.ylabel('Size (pc)')
     plt.xscale("log")
     plt.yscale("log")
-    plt.title('Mass vs. Size of Regions in Orion A and B with Fractal Dimension as Color')
+    plt.title('Mass vs. Size of Regions in Orion A and B with Fractal Dimension as Color', fontweight='bold')
 
     # Add grid and legend
     plt.grid(True, which="both", linestyle="--", linewidth=0.5)
@@ -310,14 +310,14 @@ def show_shapes_results(shape_image, name, thresholds, results, fractal_dimensio
 
     plt.subplot(1, 3, 1)
     plt.imshow(shape_image, cmap='gray')
-    plt.title(name)
+    plt.title(name, fontweight='bold')
     plt.colorbar()
 
     plt.subplot(1, 3, 2)
     plt.plot(thresholds, ((results["fractal_dimension"])), "o-")
     plt.xlabel('Threshold')
     plt.ylabel('D (Minkowski Functionals)')
-    plt.title('Minkowski Functionals for '+name)
+    plt.title('Minkowski Functionals for '+name, fontweight='bold')
 
     # Calculate fractal dimensions using box counting method
 
@@ -325,7 +325,7 @@ def show_shapes_results(shape_image, name, thresholds, results, fractal_dimensio
     plt.plot(thresholds, fractal_dimension_BC, '-o')
     plt.xlabel('Threshold')
     plt.ylabel('D (Box Counting)')
-    plt.title('Fractal Dimensions for '+name)
+    plt.title('Fractal Dimensions for '+name, fontweight='bold')
 
     plt.tight_layout()
     plt.show()
@@ -387,5 +387,64 @@ def visualize_grid_simulations(simulations_objects, shape, sigmas, results, resu
                 plt.ylabel("Fractal Dimension")
 
     plt.suptitle(suptitle, fontsize=16, fontweight='bold')
+    plt.tight_layout()
+    plt.show()
+
+
+def visualize_grid_simulations_filaments(simulations_objects, shape, results, results_correction, name_shape, suptitle):
+    plt.figure(figsize=(18, 12))
+
+    # First row: Object images (gaussian, filaments, etc..)
+    for i, gaussian in enumerate(simulations_objects):
+        plt.subplot(5, len(simulations_objects), i + 1)
+        plt.imshow(gaussian, origin='lower', cmap='inferno', extent=[0, shape[0], 0, shape[1]])
+        plt.title(f"{name_shape} {i+1}")
+        plt.colorbar(label="Amplitude")
+        plt.axis("off")
+
+    # Second, third, fourth rows: Minkowski functionals
+    labels = ["Perimeter (v0)", "Area (v1)", "Fractal Dimension"]
+    iter_objects = ["perimeters", "areas", "fractal_dimension"]
+
+    for j in range(len(labels)):  # One row for each functional
+        for i, gaussian in enumerate(simulations_objects):
+            plt.subplot(5, len(simulations_objects), (j + 1) * len(simulations_objects) + i + 1)
+            plt.plot(results[i]["thresholds"], results[i][iter_objects[j]], 'o-')
+            plt.xlabel("Threshold")
+            plt.ylabel(labels[j])
+            plt.xscale("log")
+            if j == 2:  # For the fractal dimension row
+                avg_fractal_dim = np.nanmean(results[i]["fractal_dimension"]) 
+                plt.title(f"Average D: {avg_fractal_dim:.2f}")
+                
+                # plt.plot(results_correction[i]["thresholds"], results_correction[i]["fractal_dimension"], 'o-')
+                plt.xlabel("Threshold")
+                plt.ylabel("Fractal Dimension")
+
+    plt.suptitle(suptitle, fontsize=16, fontweight='bold')
+    plt.tight_layout()
+    plt.show()
+
+def show_shape_different_thresholds(thresholds, form, shape, form_name):
+    
+    # Visualize the Gaussian and binary masks at different thresholds in one graph
+    fig, axes = plt.subplots(1, len(thresholds) + 1, figsize=(18, 5))
+
+    # Plot the original Gaussian
+    axes[0].imshow(form, origin='lower', cmap='inferno', extent=[0, shape[0], 0, shape[1]])
+    axes[0].set_title("Original Gaussian")
+    axes[0].axis("off")
+    axes[0].set_aspect('equal')
+    axes[0].figure.colorbar(axes[0].images[0], ax=axes[0], label="Amplitude")
+
+    # Plot binary masks for each threshold
+    for i, threshold in enumerate(thresholds):
+        mask = form >= threshold
+        axes[i + 1].imshow(mask, origin='lower', cmap='gray', extent=[0, shape[0], 0, shape[1]])
+        axes[i + 1].set_title(f"Threshold: {threshold}")
+        axes[i + 1].axis("off")
+        axes[i + 1].set_aspect('equal')
+
+    fig.suptitle(form_name+" and Binary Masks at Different Thresholds", fontsize=16, fontweight='bold')
     plt.tight_layout()
     plt.show()
