@@ -33,7 +33,7 @@ def remove_region(data, wcs, longitude_min, longitude_max, latitude_min, latitud
 
     return data
 
-def derive_density_maps():
+def derive_density_maps(remove_regions = True):
     # Get the current working directory
     curr_folder = os.getcwd()
 
@@ -69,10 +69,6 @@ def derive_density_maps():
     # Step 3: Apply the formula to calculate A_k (Lomabrdi et al)
     l_min_A, l_max_A = 206, 217
     b_min_A, b_max_A = -21, -17
-
-    # Making it smaller cause of computation time
-    # l_min_A, l_max_A = 210, 212
-    # b_min_A, b_max_A = -21, -20
 
     min_coord_A = SkyCoord(l_min_A, b_min_A, frame='galactic', unit=u.deg)
     max_coord_A = SkyCoord(l_max_A, b_max_A, frame='galactic', unit=u.deg)
@@ -123,15 +119,16 @@ def derive_density_maps():
     ]
 
     # Loop through each region and remove it from N_H2
-    for region in regions_to_remove:
-        N_H2 = remove_region(
-            N_H2,
-            wcs,
-            region["longitude_min"],
-            region["longitude_max"],
-            region["latitude_min"],
-            region["latitude_max"]
-        )
+    if remove_regions:
+        for region in regions_to_remove:
+            N_H2 = remove_region(
+                N_H2,
+                wcs,
+                region["longitude_min"],
+                region["longitude_max"],
+                region["latitude_min"],
+                region["latitude_max"]
+            )
     
     N_H2_OA = N_H2[int(min_pixel_A[1]): int(max_pixel_A[1]), int(max_pixel_A[0]): int(min_pixel_A[0])]
     N_H2_OB = N_H2[int(min_pixel_B[1]): int(max_pixel_B[1]), int(max_pixel_B[0]): int(min_pixel_B[0])]
@@ -178,11 +175,13 @@ def convert_to_mass(N_H2):
 
     m_p = 1.67262192369e-27  # mass of proton (kg)
     
-    M_H2 = np.array(N_H2, dtype=np.float64) * m_p / 1.98847e30
-    # M_H2 = np.array(N_H2, dtype=np.float64) * 2.8 * m_p / 1.98847e30
+    # M_H2 = np.array(N_H2, dtype=np.float64) * m_p / 1.98847e30
+    mu = 2.8 # mean molecular weight corrected for the helium abundance
+
+    M_H2 = np.array(N_H2, dtype=np.float64) * mu * m_p / 1.98847e30
 
     # M_H2 = M_H2*area # check here!
-    M_H2 = M_H2 * cm2_per_px
+    M_H2 = M_H2 * 8.56e33 # * cm2_per_px
 
     # Assuming M_H2_clean is already defined
     M_H2_no_nan = np.nan_to_num(M_H2, nan=0.0, posinf=0.0, neginf=0.0)
