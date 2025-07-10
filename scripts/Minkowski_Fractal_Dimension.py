@@ -84,8 +84,8 @@ def standard_minkowski_functionals(data, threshold_min=1e20, threshold_max=1e22,
     D = (2 * log_perimeters) / (log_areas)
 
     # Estimate uncertainties
-    sigma_A = np.sqrt(areas)  # rough Poisson error
-    sigma_P = 0.5 * np.sqrt(perimeters)  # rough guess; adjust based on your system
+    sigma_A = 0.016 * np.array(areas)  # 1.6% error on area
+    sigma_P = 0.016 * np.array(perimeters)  # 1.6% error on perimeter
 
     # Convert to np arrays
     areas = np.array(areas)
