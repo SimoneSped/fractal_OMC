@@ -6,6 +6,7 @@ import numpy as np
 # Specific Imports
 from astropy.wcs import WCS
 from astropy.coordinates import SkyCoord
+from astropy.nddata.utils import Cutout2D
 import astropy.units as u
 from astropy.io import fits
 
@@ -15,8 +16,8 @@ def remove_region(data, wcs, longitude_min, longitude_max, latitude_min, latitud
     min_coord_remove = SkyCoord(longitude_min, latitude_min, frame='galactic', unit=u.deg)
     max_coord_remove = SkyCoord(longitude_max, latitude_max, frame='galactic', unit=u.deg)
 
-    min_pixel_remove = wcs[:][:][0].world_to_pixel(min_coord_remove)
-    max_pixel_remove = wcs[:][:][0].world_to_pixel(max_coord_remove)
+    min_pixel_remove = wcs[0].world_to_pixel(min_coord_remove)
+    max_pixel_remove = wcs[0].world_to_pixel(max_coord_remove)
 
     # Create a mask based on these galactic coordinates
     remove_mask = np.zeros(data.shape, dtype=bool)
@@ -67,41 +68,72 @@ def derive_density_maps(remove_regions = True):
     # Orion B: 203 ≤ l ≤ 210, −17 ≤ b ≤ −12
 
     # Step 3: Apply the formula to calculate A_k (Lomabrdi et al)
-    l_min_A, l_max_A = 206, 217
-    b_min_A, b_max_A = -21, -17
-
-    min_coord_A = SkyCoord(l_min_A, b_min_A, frame='galactic', unit=u.deg)
-    max_coord_A = SkyCoord(l_max_A, b_max_A, frame='galactic', unit=u.deg)
-
-    min_pixel_A = wcs[:][:][0].world_to_pixel(min_coord_A)
-    max_pixel_A = wcs[:][:][0].world_to_pixel(max_coord_A)
 
     gamma_orion_A = 2640  # mag
     delta_orion_A = 0.012  # mag, Offset for Orion A
 
-    A_k = gamma_orion_A * tau + delta_orion_A
+    gamma_orion_B = 3460  # mag
+    delta_orion_B = -0.001  # mag, Offset for Orion B
 
-    A_k[int(min_pixel_A[1]): int(max_pixel_A[1]), int(max_pixel_A[0]): int(min_pixel_A[0])] = gamma_orion_A * tau[int(min_pixel_A[1]): int(max_pixel_A[1]), int(max_pixel_A[0]): int(min_pixel_A[0])] + delta_orion_A
+    from astropy.wcs.utils import pixel_to_skycoord
+
+    ny, nx = tau.shape
+    y, x = np.mgrid[0:ny, 0:nx]
+    coords = pixel_to_skycoord(x, y, wcs)
+
+    l_min_A, l_max_A = 206, 217
+    b_min_A, b_max_A = -21, -17
 
     l_min_B, l_max_B = 203, 210
     b_min_B, b_max_B = -17, -12
 
-    min_coord_B = SkyCoord(l_min_B, b_min_B, frame='galactic', unit=u.deg)
-    max_coord_B = SkyCoord(l_max_B, b_max_B, frame='galactic', unit=u.deg)
+    # Build masks in Galactic coordinates
+    mask_A = (coords.l.deg >= l_min_A) & (coords.l.deg <= l_max_A) & (coords.b.deg >= b_min_A) & (coords.b.deg <= b_max_A)
+    mask_B = (coords.l.deg >= l_min_B) & (coords.l.deg <= l_max_B) & (coords.b.deg >= b_min_B) & (coords.b.deg <= b_max_B)
 
-    min_pixel_B = wcs[:][:][0].world_to_pixel(min_coord_B)
-    max_pixel_B = wcs[:][:][0].world_to_pixel(max_coord_B)
-
-    gamma_orion_B = 3460  # mag
-    delta_orion_B = -0.001  # mag, Offset for Orion B
-
-    A_k[int(min_pixel_B[1]): int(max_pixel_B[1]), int(max_pixel_B[0]): int(min_pixel_B[0])] = gamma_orion_B * tau[int(min_pixel_B[1]): int(max_pixel_B[1]), int(max_pixel_B[0]): int(min_pixel_B[0])] + delta_orion_B
+    A_k = np.zeros_like(tau)
+    A_k = gamma_orion_A * tau + delta_orion_A
+    A_k[mask_A] = gamma_orion_A * tau[mask_A] + delta_orion_A
+    A_k[mask_B] = gamma_orion_B * tau[mask_B] + delta_orion_B
 
     # A_k to A_V
     A_V = A_k/0.112
 
     # N(H2)
     N_H2 = 0.93e21 * np.array(A_V , dtype=np.float64)
+
+    wcs_2d = wcs.dropaxis(2)
+
+    center_OA = SkyCoord(l=211.5*u.deg, b=-19*u.deg, frame='galactic')  # center of Orion A
+    size_OA = (4*u.deg, 11*u.deg)  # (height in latitude, width in longitude)
+
+    wcs_2d = wcs.dropaxis(2)
+
+    cutout_OA = Cutout2D(
+        data=N_H2,
+        position=center_OA,
+        size=size_OA,
+        wcs=wcs_2d,             # your original WCS
+        mode='partial',      # keeps WCS valid even if edges fall outside
+        fill_value=np.nan
+    )
+    N_H2_OA = cutout_OA.data
+    wcs_OA = cutout_OA.wcs
+
+    center_OB = SkyCoord(206.5*u.deg, -14.5*u.deg, frame='galactic')
+    size_OB = (5*u.deg, 7*u.deg)
+
+    cutout_OB = Cutout2D(
+        data=N_H2,
+        position=center_OB,
+        size=size_OB,
+        wcs=wcs_2d,             # your original WCS
+        mode='partial',      # keeps WCS valid even if edges fall outside
+        fill_value=np.nan
+    )
+
+    N_H2_OB = cutout_OB.data
+    wcs_OB = cutout_OB.wcs
 
     # Define regions to remove as a list of dictionaries
     regions_to_remove = [
@@ -129,15 +161,12 @@ def derive_density_maps(remove_regions = True):
                 region["latitude_min"],
                 region["latitude_max"]
             )
-    
-    N_H2_OA = N_H2[int(min_pixel_A[1]): int(max_pixel_A[1]), int(max_pixel_A[0]): int(min_pixel_A[0])]
-    N_H2_OB = N_H2[int(min_pixel_B[1]): int(max_pixel_B[1]), int(max_pixel_B[0]): int(min_pixel_B[0])]
 
     N_H2 = np.nan_to_num(N_H2, nan=0.0, posinf=0.0, neginf=0.0)
     N_H2_OA = np.nan_to_num(N_H2_OA, nan=0.0, posinf=0.0, neginf=0.0)
     N_H2_OB = np.nan_to_num(N_H2_OB, nan=0.0, posinf=0.0, neginf=0.0)
     
-    return N_H2, N_H2_OA, N_H2_OB, wcs
+    return N_H2, N_H2_OA, N_H2_OB, wcs, wcs_OA, wcs_OB
 
 def convert_to_mass(N_H2):
     """
